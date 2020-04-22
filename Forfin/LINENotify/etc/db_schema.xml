@@ -5,8 +5,11 @@
 		<constraint referenceId="PRIMARY" xsi:type="primary">
 			<column name="linenotifylogs_id"/>
 		</constraint>
-		<column name="created_at" nullable="true" xsi:type="timestamp"/>
+		<column identity="false" name="order_id" xsi:type="int" padding="10" unsigned="true" nullable="false"/>
+		<column length="255" name="message" nullable="true" xsi:type="varchar"/>
 		<column length="255" name="status" nullable="true" xsi:type="varchar"/>
-		<column identity="false" name="order_id" nullable="true" xsi:type="int"/>
+		<column name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" xsi:type="timestamp"/>
+
+		<constraint xsi:type="foreign" referenceId="LINE_NOTIFY_LOG_ORDER_ID_SALES_ENT_ID" table="forfin_linenotify_linenotifylogs" column="order_id" referenceTable="sales_order" referenceColumn="entity_id" onDelete="NO ACTION"/>
 	</table>
 </schema>
