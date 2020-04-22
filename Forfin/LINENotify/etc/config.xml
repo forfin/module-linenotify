@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+	<default>
+		<line_notify_general>
+			<line>
+				<line_token/>
+			</line>
+			<web_service>
+				<auth_header/>
+			</web_service>
+		</line_notify_general>
+	</default>
+</config>

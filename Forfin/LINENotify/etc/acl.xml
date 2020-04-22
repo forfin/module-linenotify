@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+	<acl>
+		<resources>
+			<resource id="Magento_Backend::admin">
+				<resource id="Forfin_LINENotify::LineNotifyLogs" sortOrder="10" title="LineNotifyLogs">
+					<resource id="Forfin_LINENotify::LineNotifyLogs_save" sortOrder="10" title="Save LineNotifyLogs"/>
+					<resource id="Forfin_LINENotify::LineNotifyLogs_delete" sortOrder="20" title="Delete LineNotifyLogs"/>
+					<resource id="Forfin_LINENotify::LineNotifyLogs_update" sortOrder="30" title="Update LineNotifyLogs"/>
+					<resource id="Forfin_LINENotify::LineNotifyLogs_view" sortOrder="40" title="View LineNotifyLogs"/>
+				</resource>
+				<resource id="Magento_Backend::stores">
+					<resource id="Magento_Backend::stores_settings">
+						<resource id="Magento_Config::config">
+							<resource id="Forfin_LINENotify::config_forfin_linenotify" title="line_notify_general"/>
+						</resource>
+					</resource>
+				</resource>
+			</resource>
+		</resources>
+	</acl>
+</config>

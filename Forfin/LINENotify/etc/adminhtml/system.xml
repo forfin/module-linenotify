@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+	<system>
+		<tab id="line_notify" sortOrder="999" translate="label">
+			<label>Line Notify</label>
+		</tab>
+		<section id="line_notify_general" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+			<label>General</label>
+			<tab>line_notify</tab>
+			<resource>Forfin_LINENotify::config_forfin_linenotify</resource>
+			<group id="line" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+				<label>Line</label>
+				<field id="line_token" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="text">
+					<label>Line Notify Token</label>
+					<comment/>
+				</field>
+			</group>
+			<group id="web_service" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
+				<label>Web Service</label>
+				<field id="auth_header" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="text">
+					<label>Auth Token</label>
+					<comment/>
+				</field>
+			</group>
+		</section>
+	</system>
+</config>
