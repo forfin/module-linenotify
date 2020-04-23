@@ -5,12 +5,14 @@
     "license": "MIT",
     "authors": [
         {
-            "email": "info@mage2gen.com",
-            "name": "Mage2Gen"
+            "email": "porraphit@gmail.com",
+            "name": "Porraphit Chuesook"
         }
     ],
     "minimum-stability": "dev",
-    "require": {},
+    "require": {
+        "linecorp/line-bot-sdk": "^4.3.0"
+    },
     "autoload": {
         "files": [
             "registration.php"
