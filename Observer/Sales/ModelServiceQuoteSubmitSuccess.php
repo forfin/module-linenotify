@@ -33,12 +33,27 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
     /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     private $scopeConfig;
 
+    /** @var \Psr\Http\Client\ClientInterface */
+    private $httpClient;
+
+    /** @var \Psr\Http\Message\RequestFactoryInterface */
+    private $httpRequestFactory;
+
+    /** @var \Psr\Http\Message\StreamFactoryInterface */
+    private $streamFactory;
+
     public function __construct(
         \Forfin\LINENotify\Model\LineNotifyLogsFactory $lineNotifyLogsFactory,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Psr\Http\Client\ClientInterface $httpClient,
+        \Psr\Http\Message\RequestFactoryInterface $httpRequestFactory,
+        \Psr\Http\Message\StreamFactoryInterface $streamFactory
     ) {
         $this->lineNotifyLogsFactory = $lineNotifyLogsFactory;
         $this->scopeConfig = $scopeConfig;
+        $this->httpClient = $httpClient;
+        $this->httpRequestFactory = $httpRequestFactory;
+        $this->streamFactory = $streamFactory;
     }
 
     /**
@@ -58,7 +73,51 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
             $order->getStoreId()
         );
 
+        $notifyMessage = sprintf('Customer order %s.', $order->getIncrementId());
+        $logMessage = $notifyMessage;
+        $notifiedSuccess = true;
+
+        try {
+            $this->sendLineNotify($notifyMessage, $lineToken);
+        } catch (\Psr\Http\Client\ClientExceptionInterface $clientException) {
+            $notifiedSuccess = false;
+            $logMessage = $clientException->getMessage();
+        } finally {
+            $this->logLineNotified($order->getEntityId(), $logMessage, $notifiedSuccess);
+        }
 
     }
+
+
+    /**
+     * @param string $message
+     * @param string $lineToken
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     */
+    private function sendLineNotify(string $message, string $lineToken)
+    {
+        $notifyRequest = ($this->httpRequestFactory->createRequest('POST', 'https://notify-api.line.me/api/notify'))
+            ->withHeader('Content-type', 'application/x-www-form-urlencoded')
+            ->withHeader('Authorization', "Bearer {$lineToken}")
+            ->withBody($this->streamFactory->createStream(sprintf('message=%s', \urlencode($message))));
+
+        $this->httpClient->sendRequest($notifyRequest);
+    }
+
+    /**
+     * @param int $orderId
+     * @param string $message
+     * @param bool $isSuccess
+     */
+    private function logLineNotified(int $orderId, string $message, bool $isSuccess)
+    {
+        $this->lineNotifyLogsFactory->create([
+            \Forfin\LINENotify\Model\Data\LineNotifyLogs::ORDER_ID => $orderId,
+            \Forfin\LINENotify\Model\Data\LineNotifyLogs::MESSAGE => $message,
+            \Forfin\LINENotify\Model\Data\LineNotifyLogs::STATUS => $isSuccess ? 'fail':'success',
+                                             ]);
+    }
+
+
 }
 
