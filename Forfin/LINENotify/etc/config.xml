@@ -5,9 +5,6 @@
 			<line>
 				<line_token/>
 			</line>
-			<web_service>
-				<auth_header/>
-			</web_service>
 		</line_notify_general>
 	</default>
 </config>

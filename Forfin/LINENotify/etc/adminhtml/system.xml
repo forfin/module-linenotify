@@ -15,13 +15,6 @@
 					<comment/>
 				</field>
 			</group>
-			<group id="web_service" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label">
-				<label>Web Service</label>
-				<field id="auth_header" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="10" translate="label" type="text">
-					<label>Auth Token</label>
-					<comment/>
-				</field>
-			</group>
 		</section>
 	</system>
 </config>
