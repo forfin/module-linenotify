@@ -1,17 +1,17 @@
 <?php declare(strict_types=1);
 /**
- * Copyright (c) 2019  
- * 
+ * Copyright (c) 2019
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,6 +27,20 @@ namespace Forfin\LINENotify\Observer\Sales;
 class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\ObserverInterface
 {
 
+    /** @var \Forfin\LINENotify\Model\LineNotifyLogsFactory */
+    private $lineNotifyLogsFactory;
+
+    /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
+    private $scopeConfig;
+
+    public function __construct(
+        \Forfin\LINENotify\Model\LineNotifyLogsFactory $lineNotifyLogsFactory,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+    ) {
+        $this->lineNotifyLogsFactory = $lineNotifyLogsFactory;
+        $this->scopeConfig = $scopeConfig;
+    }
+
     /**
      * Execute observer
      *
@@ -36,7 +50,15 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
     public function execute(
         \Magento\Framework\Event\Observer $observer
     ) {
-        //Your observer code
+        /** @var \Magento\Sales\Api\Data\OrderInterface $order */
+        $order = $observer->getData('order');
+        $lineToken = $this->scopeConfig->getValue(
+            'line_notify_general/line/line_token',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $order->getStoreId()
+        );
+
+
     }
 }
 
