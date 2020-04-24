@@ -95,7 +95,7 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
         $ln = new \KS\Line\LineNotify($lineToken);
         try {
             return $ln->send($message);
-        } catch (\Psr\Http\Client\ClientExceptionInterface $clientException) {
+        } catch (\GuzzleHttp\Exception\GuzzleException $clientException) {
             return false;
         }
     }
