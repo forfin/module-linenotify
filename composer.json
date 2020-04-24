@@ -11,6 +11,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
+        "kittinan/php-line-notify": "0.5"
     },
     "autoload": {
         "files": [

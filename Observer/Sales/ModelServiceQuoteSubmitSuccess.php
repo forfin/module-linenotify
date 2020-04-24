@@ -74,18 +74,10 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
         }
 
         $notifyMessage = sprintf('Customer order %s.', $order->getIncrementId());
-        $logMessage = $notifyMessage;
-        $notifiedSuccess = true;
+        $notifiedSuccess = $this->sendLineNotify($notifyMessage, $lineToken);
 
         try {
-            $this->sendLineNotify($notifyMessage, $lineToken);
-        } catch (\Exception $clientException) {
-            $notifiedSuccess = false;
-            $logMessage = $clientException->getMessage();
-        }
-
-        try {
-            $this->logLineNotified((string) $order->getEntityId(), $logMessage, $notifiedSuccess);
+            $this->logLineNotified((string) $order->getEntityId(), $notifyMessage, $notifiedSuccess);
         } catch (\Exception $exception) {
             $this->logger->warning("Unable to add line notify log: {$exception->getMessage()}");
         }
@@ -96,26 +88,12 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
     /**
      * @param string $message
      * @param string $lineToken
-     * @return mixed
+     * @return bool
      */
     private function sendLineNotify(string $message, string $lineToken)
     {
-        $queryData = ['message' => $message];
-        $queryData = \http_build_query($queryData, '', '&');
-        $headerOptions = [
-            'http' => [
-                'method' => 'POST',
-                'header' => "Content-Type: application/x-www-form-urlencoded\r\n"
-                    . "Authorization: Bearer " . $lineToken . "\r\n"
-                    . "Content-Length: " . \strlen($queryData) . "\r\n",
-                'content' => $queryData
-            ],
-        ];
-        $context = \stream_context_create($headerOptions);
-        $result = \file_get_contents('https://notify-api.line.me/api/notify', FALSE, $context);
-        //TODO Add error handler.
-        $res = \json_decode($result);
-        return $res;
+        $ln = new \KS\Line\LineNotify($lineToken);
+        return $ln->send($message);
     }
 
     /**
