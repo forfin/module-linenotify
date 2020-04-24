@@ -30,15 +30,25 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
     /** @var \Forfin\LINENotify\Model\LineNotifyLogsFactory */
     private $lineNotifyLogsFactory;
 
+    /** @var \Forfin\LINENotify\Model\LineNotifyLogsRepository */
+    private $lineNotifyLogsRepository;
+
     /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     private $scopeConfig;
 
+    /** @var \Psr\Log\LoggerInterface */
+    private $logger;
+
     public function __construct(
         \Forfin\LINENotify\Model\LineNotifyLogsFactory $lineNotifyLogsFactory,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+        \Forfin\LINENotify\Model\LineNotifyLogsRepository $lineNotifyLogsRepository,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Psr\Log\LoggerInterface $logger
     ) {
         $this->lineNotifyLogsFactory = $lineNotifyLogsFactory;
+        $this->lineNotifyLogsRepository = $lineNotifyLogsRepository;
         $this->scopeConfig = $scopeConfig;
+        $this->logger = $logger;
     }
 
     /**
@@ -67,8 +77,12 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
         } catch (\Exception $clientException) {
             $notifiedSuccess = false;
             $logMessage = $clientException->getMessage();
-        } finally {
-            $this->logLineNotified($order->getEntityId(), $logMessage, $notifiedSuccess);
+        }
+
+        try {
+            $this->logLineNotified((string) $order->getEntityId(), $logMessage, $notifiedSuccess);
+        } catch (\Exception $exception) {
+            $this->logger->warning("Unable to add line notify log: {$exception->getMessage()}");
         }
 
     }
@@ -82,35 +96,37 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
     private function sendLineNotify(string $message, string $lineToken)
     {
         $queryData = ['message' => $message];
-        $queryData = http_build_query($queryData, '', '&');
+        $queryData = \http_build_query($queryData, '', '&');
         $headerOptions = [
             'http' => [
                 'method' => 'POST',
                 'header' => "Content-Type: application/x-www-form-urlencoded\r\n"
                     . "Authorization: Bearer " . $lineToken . "\r\n"
-                    . "Content-Length: " . strlen($queryData) . "\r\n",
+                    . "Content-Length: " . \strlen($queryData) . "\r\n",
                 'content' => $queryData
             ],
         ];
-        $context = stream_context_create($headerOptions);
-        $result = file_get_contents('https://notify-api.line.me/api/notify', FALSE, $context);
+        $context = \stream_context_create($headerOptions);
+        $result = \file_get_contents('https://notify-api.line.me/api/notify', FALSE, $context);
         //TODO Add error handler.
-        $res = json_decode($result);
+        $res = \json_decode($result);
         return $res;
     }
 
     /**
-     * @param int $orderId
+     * @param string $orderId
      * @param string $message
      * @param bool $isSuccess
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    private function logLineNotified(int $orderId, string $message, bool $isSuccess)
+    private function logLineNotified(string $orderId, string $message, bool $isSuccess)
     {
-        $this->lineNotifyLogsFactory->create([
-            \Forfin\LINENotify\Model\Data\LineNotifyLogs::ORDER_ID => $orderId,
-            \Forfin\LINENotify\Model\Data\LineNotifyLogs::MESSAGE => $message,
-            \Forfin\LINENotify\Model\Data\LineNotifyLogs::STATUS => $isSuccess ? 'fail':'success',
-                                             ]);
+        $notify = $this->lineNotifyLogsFactory->create()
+            ->getDataModel()
+            ->setOrderId($orderId)
+            ->setMessage($message)
+            ->setStatus($isSuccess ? 'success':'fail');
+        $this->lineNotifyLogsRepository->save($notify);
     }
 
 }
