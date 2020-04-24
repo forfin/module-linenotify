@@ -93,7 +93,11 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
     private function sendLineNotify(string $message, string $lineToken)
     {
         $ln = new \KS\Line\LineNotify($lineToken);
-        return $ln->send($message);
+        try {
+            return $ln->send($message);
+        } catch (\Psr\Http\Client\ClientExceptionInterface $clientException) {
+            return false;
+        }
     }
 
     /**
