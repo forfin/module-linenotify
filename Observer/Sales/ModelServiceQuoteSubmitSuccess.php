@@ -62,11 +62,16 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
     ) {
         /** @var \Magento\Sales\Api\Data\OrderInterface $order */
         $order = $observer->getData('order');
-        $lineToken = $this->scopeConfig->getValue(
+        $lineToken = (string) $this->scopeConfig->getValue(
             'line_notify_general/line/line_token',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
             $order->getStoreId()
         );
+
+        // Ignore if no token.
+        if (\trim($lineToken) === '') {
+            return;
+        }
 
         $notifyMessage = sprintf('Customer order %s.', $order->getIncrementId());
         $logMessage = $notifyMessage;
@@ -91,7 +96,7 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
     /**
      * @param string $message
      * @param string $lineToken
-     * @throws \Psr\Http\Client\ClientExceptionInterface
+     * @return mixed
      */
     private function sendLineNotify(string $message, string $lineToken)
     {
