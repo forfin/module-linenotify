@@ -33,27 +33,12 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
     /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     private $scopeConfig;
 
-    /** @var \Psr\Http\Client\ClientInterface */
-    private $httpClient;
-
-    /** @var \Psr\Http\Message\RequestFactoryInterface */
-    private $httpRequestFactory;
-
-    /** @var \Psr\Http\Message\StreamFactoryInterface */
-    private $streamFactory;
-
     public function __construct(
         \Forfin\LINENotify\Model\LineNotifyLogsFactory $lineNotifyLogsFactory,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Psr\Http\Client\ClientInterface $httpClient,
-        \Psr\Http\Message\RequestFactoryInterface $httpRequestFactory,
-        \Psr\Http\Message\StreamFactoryInterface $streamFactory
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
         $this->lineNotifyLogsFactory = $lineNotifyLogsFactory;
         $this->scopeConfig = $scopeConfig;
-        $this->httpClient = $httpClient;
-        $this->httpRequestFactory = $httpRequestFactory;
-        $this->streamFactory = $streamFactory;
     }
 
     /**
@@ -79,7 +64,7 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
 
         try {
             $this->sendLineNotify($notifyMessage, $lineToken);
-        } catch (\Psr\Http\Client\ClientExceptionInterface $clientException) {
+        } catch (\Exception $clientException) {
             $notifiedSuccess = false;
             $logMessage = $clientException->getMessage();
         } finally {
@@ -96,12 +81,22 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
      */
     private function sendLineNotify(string $message, string $lineToken)
     {
-        $notifyRequest = ($this->httpRequestFactory->createRequest('POST', 'https://notify-api.line.me/api/notify'))
-            ->withHeader('Content-type', 'application/x-www-form-urlencoded')
-            ->withHeader('Authorization', "Bearer {$lineToken}")
-            ->withBody($this->streamFactory->createStream(sprintf('message=%s', \urlencode($message))));
-
-        $this->httpClient->sendRequest($notifyRequest);
+        $queryData = ['message' => $message];
+        $queryData = http_build_query($queryData, '', '&');
+        $headerOptions = [
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/x-www-form-urlencoded\r\n"
+                    . "Authorization: Bearer " . $lineToken . "\r\n"
+                    . "Content-Length: " . strlen($queryData) . "\r\n",
+                'content' => $queryData
+            ],
+        ];
+        $context = stream_context_create($headerOptions);
+        $result = file_get_contents('https://notify-api.line.me/api/notify', FALSE, $context);
+        //TODO Add error handler.
+        $res = json_decode($result);
+        return $res;
     }
 
     /**
@@ -117,7 +112,6 @@ class ModelServiceQuoteSubmitSuccess implements \Magento\Framework\Event\Observe
             \Forfin\LINENotify\Model\Data\LineNotifyLogs::STATUS => $isSuccess ? 'fail':'success',
                                              ]);
     }
-
 
 }
 

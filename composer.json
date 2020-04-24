@@ -11,8 +11,6 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "psr/http-factory": "^1.0@dev",
-        "psr/http-client": "^1.0@dev"
     },
     "autoload": {
         "files": [
